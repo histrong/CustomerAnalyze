@@ -6,6 +6,8 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
+
 public class CellContentUtil {
 
     private static Logger logger = LoggerFactory.getLogger(CellContentUtil.class);
@@ -16,6 +18,18 @@ public class CellContentUtil {
         }
         else if (cell.getCellTypeEnum().equals(CellType.NUMERIC)) {
             return Double.toString(cell.getNumericCellValue());
+        }
+        else {
+            throw new CellContentException(cell.getRowIndex(), cell.getColumnIndex());
+        }
+    }
+
+    public static double getNumericContent(Cell cell) throws CellContentException {
+        if (cell.getCellTypeEnum().equals(CellType.NUMERIC)) {
+            return cell.getNumericCellValue();
+        }
+        else if (cell.getCellTypeEnum().equals(CellType.STRING)) {
+            return Double.valueOf(cell.getStringCellValue());
         }
         else {
             throw new CellContentException(cell.getRowIndex(), cell.getColumnIndex());
