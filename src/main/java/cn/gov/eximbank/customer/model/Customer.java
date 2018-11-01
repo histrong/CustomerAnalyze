@@ -2,6 +2,7 @@ package cn.gov.eximbank.customer.model;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import java.util.Date;
 
 @Entity
 public class Customer {
@@ -11,14 +12,82 @@ public class Customer {
 
     private String name;
 
+    private String groupId;
+
     private String scale;
 
     private String branch;
 
-    protected Customer() {}
+    private Date relationshipDate;
 
-    public Customer(String account, String name) {
+    private Date firstDealDate;
 
+    private Date lastCreditDate;
+
+    private Date lastDealClearDate;
+
+    private String manager;
+
+    protected Customer() {
+    }
+
+    public Customer(String id, String name, String  groupId, String scale, String branch,
+                    Date relationshipDate, Date firstDealDate, Date lastCreditDate,
+                    Date lastDealClearDat, String manager) {
+        this.id = id;
+        this.name = name;
+        this.groupId = groupId;
+        this.scale = scale;
+        this.branch = branch;
+        this.relationshipDate = relationshipDate;
+        this.firstDealDate = firstDealDate;
+        this.lastCreditDate = lastCreditDate;
+        this.lastDealClearDate = lastDealClearDat;
+        this.manager = manager;
+    }
+
+    public void setScale(String scale) {
+        this.scale = scale;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public String getScale() {
+        return scale;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public Date getRelationshipDate() {
+        return relationshipDate;
+    }
+
+    public Date getFirstDealDate() {
+        return firstDealDate;
+    }
+
+    public Date getLastCreditDate() {
+        return lastCreditDate;
+    }
+
+    public Date getLastDealClearDate() {
+        return lastDealClearDate;
+    }
+
+    public String getManager() {
+        return manager;
     }
 
     public boolean equals(Object object) {

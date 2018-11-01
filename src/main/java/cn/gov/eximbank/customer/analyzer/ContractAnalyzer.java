@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ContractAnalyzer {
 
@@ -47,9 +45,9 @@ public class ContractAnalyzer {
         }
     }
 
-    private void readContracts(File dealFile, String remainingColumnName) {
+    private void readContracts(File contractFile, String remainingColumnName) {
         try {
-            Workbook wb = WorkbookFactory.create(dealFile);
+            Workbook wb = WorkbookFactory.create(contractFile);
             Sheet sheet = wb.getSheetAt(0);
             for (int i = 5; i != sheet.getLastRowNum() + 1; ++i) {
                 Row row = sheet.getRow(i);
