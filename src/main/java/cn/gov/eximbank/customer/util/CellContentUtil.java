@@ -1,17 +1,15 @@
 package cn.gov.eximbank.customer.util;
 
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.CellValue;
+import org.apache.poi.ss.usermodel.FormulaEvaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.GregorianCalendar;
 
 public class CellContentUtil {
 
@@ -23,6 +21,19 @@ public class CellContentUtil {
         }
         else if (cell.getCellTypeEnum().equals(CellType.NUMERIC)) {
             return Double.toString(cell.getNumericCellValue());
+        }
+        else if (cell.getCellTypeEnum().equals(CellType.BLANK)) {
+            return "";
+        }
+        else if (cell.getCellTypeEnum().equals(CellType._NONE)) {
+            return null;
+        }
+        else if (cell.getCellTypeEnum().equals(CellType.FORMULA)) {
+            FormulaEvaluator evaluator = cell.getSheet().getWorkbook().getCreationHelper().createFormulaEvaluator();
+            evaluator.evaluateFormulaCellEnum(cell);
+            CellValue cellValue = evaluator.evaluate(cell);
+            String value = cellValue.getStringValue();
+            return value;
         }
         else {
             throw new CellContentException(cell.getRowIndex(), cell.getColumnIndex());

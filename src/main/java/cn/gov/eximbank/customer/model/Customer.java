@@ -28,12 +28,14 @@ public class Customer {
 
     private String manager;
 
+    private int inSystem;
+
     protected Customer() {
     }
 
     public Customer(String id, String name, String  groupId, String scale, String branch,
                     Date relationshipDate, Date firstDealDate, Date lastCreditDate,
-                    Date lastDealClearDat, String manager) {
+                    Date lastDealClearDat, String manager, int inSystem) {
         this.id = id;
         this.name = name;
         this.groupId = groupId;
@@ -44,6 +46,7 @@ public class Customer {
         this.lastCreditDate = lastCreditDate;
         this.lastDealClearDate = lastDealClearDat;
         this.manager = manager;
+        this.inSystem = inSystem;
     }
 
     public void setScale(String scale) {
@@ -88,6 +91,10 @@ public class Customer {
 
     public String getManager() {
         return manager;
+    }
+
+    public boolean isInSystem() {
+        return inSystem == 1;
     }
 
     public boolean equals(Object object) {

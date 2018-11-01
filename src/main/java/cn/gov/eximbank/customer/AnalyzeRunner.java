@@ -2,10 +2,7 @@ package cn.gov.eximbank.customer;
 
 import cn.gov.eximbank.customer.analyzer.ContractAnalyzer;
 import cn.gov.eximbank.customer.analyzer.CustomerAnalyzer;
-import cn.gov.eximbank.customer.model.ContractRepository;
-import cn.gov.eximbank.customer.model.CustomerRepository;
-import cn.gov.eximbank.customer.model.GroupCustomer;
-import cn.gov.eximbank.customer.model.GroupCustomerRepository;
+import cn.gov.eximbank.customer.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +16,9 @@ public class AnalyzeRunner implements CommandLineRunner {
 
     @Autowired
     private ContractRepository contractRepository;
+
+    @Autowired
+    private ContractStateRepository contractStateRepository;
 
     @Autowired
     private CustomerRepository customerRepository;
@@ -50,7 +50,7 @@ public class AnalyzeRunner implements CommandLineRunner {
     }
 
     private void readContracts() {
-        ContractAnalyzer contractAnalyzer = new ContractAnalyzer(contractRepository);
+        ContractAnalyzer contractAnalyzer = new ContractAnalyzer(contractRepository, contractStateRepository, customerRepository);
         contractAnalyzer.readContractFiles();
     }
 

@@ -53,7 +53,6 @@ public class CustomerAnalyzer {
                 Row row = sheet.getRow(i);
                 GroupCustomer groupCustomer = readGroup(row);
                 Customer customer = readCustomer(row, groupCustomer);
-                System.out.println(i + " : " + customer.getId());
             }
         } catch (InvalidFormatException e) {
             e.printStackTrace();
@@ -99,11 +98,11 @@ public class CustomerAnalyzer {
             Customer customer = null;
             if (groupCustomer != null) {
                 customer = new Customer(customerId, customerName, groupCustomer.getId(), "", branch, relationshipDate,
-                        firstDealDate, lastCreditDate, lastDealClearDate, manager);
+                        firstDealDate, lastCreditDate, lastDealClearDate, manager, 1);
             }
             else {
                 customer = new Customer(customerId, customerName, "", "", branch, relationshipDate,
-                        firstDealDate, lastCreditDate, lastDealClearDate, manager);
+                        firstDealDate, lastCreditDate, lastDealClearDate, manager, 1);
             }
             customerRepository.save(customer);
             return customer;
