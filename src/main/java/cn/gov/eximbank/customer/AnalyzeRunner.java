@@ -2,6 +2,7 @@ package cn.gov.eximbank.customer;
 
 import cn.gov.eximbank.customer.analyzer.ContractAnalyzer;
 import cn.gov.eximbank.customer.analyzer.CustomerAnalyzer;
+import cn.gov.eximbank.customer.analyzer.Reporter;
 import cn.gov.eximbank.customer.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,14 +39,8 @@ public class AnalyzeRunner implements CommandLineRunner {
             } else if (argument.equals("customers")) {
                 readCustomers();
             } else if (argument.equals("analyze")) {
-
+                report();
             }
-//        ContractAnalyzer analyzer = new ContractAnalyzer(contractRepository);
-//        Contract contract = new Contract("1234", 1000.0, "2341241");
-//        contractRepository.save(contract);
-//        for (Contract newCon : contractRepository.findAllByCustomerId("2341241")) {
-//            logger.info(newCon.getId());
-//        }
         }
     }
 
@@ -59,5 +54,11 @@ public class AnalyzeRunner implements CommandLineRunner {
         customerAnalyzer.readCustomerFiles();
     }
 
+    private void report() {
+        Reporter reporter = new Reporter(customerRepository, groupCustomerRepository,
+                contractRepository, contractStateRepository);
+        reporter.reportMainInfo();
+        reporter.reportGovermentCustomerInfo();
+    }
 
 }
