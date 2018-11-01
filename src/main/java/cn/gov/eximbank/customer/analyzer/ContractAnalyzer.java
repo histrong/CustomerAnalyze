@@ -40,9 +40,7 @@ public class ContractAnalyzer {
     }
 
     public void readContractFiles() {
-        //for (int i = 0; i != contractFileNames.length; ++i)
-        {
-            int i = 6;
+        for (int i = 0; i != contractFileNames.length; ++i) {
             String fileName = contractFileNames[i];
             String period = periods[i];
             File contractFile = new File(dataPathStr + File.separator + fileName);
