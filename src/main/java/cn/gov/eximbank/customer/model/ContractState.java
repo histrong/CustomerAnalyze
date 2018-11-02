@@ -20,15 +20,31 @@ public class ContractState {
 
     private int qualityLevel;
 
+    private String customerId;
+
+    private String scale;
+
+    private String ownership;
+
+    private String industry;
+
+    private String province;
+
     protected ContractState() {
 
     }
 
-    public ContractState(String contractId, String period, double remaining, String qualityLevelStr) {
+    public ContractState(String contractId, String period, double remaining, String qualityLevelStr,
+                         String customerId, String scale, String ownership, String industry, String province) {
         this.contractId = contractId;
         this.period = period;
         this.remaining = remaining;
         this.qualityLevel = toLevel(qualityLevelStr);
+        this.customerId = customerId;
+        this.scale = scale;
+        this.ownership = ownership;
+        this.industry = industry;
+        this.province = province;
     }
 
     private int toLevel(String qualityLevelStr) {
@@ -52,6 +68,18 @@ public class ContractState {
         }
     }
 
+    public void setRemaining(double remaining) {
+        this.remaining = remaining;
+    }
+
+    public void setCustomerId(String customerId) {
+        this.customerId = customerId;
+    }
+
+    public void setScale(String scale) {
+        this.scale = scale;
+    }
+
     public Long getId() {
         return id;
     }
@@ -70,5 +98,25 @@ public class ContractState {
 
     public int getQualityLevel() {
         return qualityLevel;
+    }
+
+    public String getCustomerId() {
+        return customerId;
+    }
+
+    public String getScale() {
+        return scale;
+    }
+
+    public String getOwnership() {
+        return ownership;
+    }
+
+    public String getIndustry() {
+        return industry;
+    }
+
+    public String getProvince() {
+        return province;
     }
 }

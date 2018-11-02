@@ -40,7 +40,9 @@ public class ContractAnalyzer {
     }
 
     public void readContractFiles() {
-        for (int i = 0; i != contractFileNames.length; ++i) {
+        for (int i = 0; i != contractFileNames.length; ++i)
+        {
+            //int i = ;
             String fileName = contractFileNames[i];
             String period = periods[i];
             File contractFile = new File(dataPathStr + File.separator + fileName);
@@ -68,6 +70,9 @@ public class ContractAnalyzer {
                     double remaining = CellContentUtil.getNumericContent(row.getCell(10));
                     String customerId = CellContentUtil.getStringContent(row.getCell(49));
                     String scale = CellContentUtil.getStringContent(row.getCell(57));
+                    String ownership = ignoreUsedContent(CellContentUtil.getStringContent(row.getCell(60)));
+                    String province = ignoreUsedContent(CellContentUtil.getStringContent(row.getCell(68)));
+                    String industry = ignoreUsedContent(CellContentUtil.getStringContent(row.getCell(55)));
                     updateCustomerInfo(row, customerId, scale, contractFile);
                     String qualityLevelStr = "";
                     if (period.startsWith("2018")) {
@@ -80,7 +85,8 @@ public class ContractAnalyzer {
                     if (contract == null) {
                         createContract(contractId, customerId);
                     }
-                    ContractState contractState = new ContractState(contractId, period, remaining, qualityLevelStr);
+                    ContractState contractState = new ContractState(contractId, period, remaining, qualityLevelStr,
+                            customerId, scale, ownership, industry, province);
                     updateContractState(contractState);
                 } catch (CellContentException e) {
                     logger.error("Read error : row : " + e.getRowIndex() + ", column : " + e.getColumnIndex() + " of " + contractFile.getAbsolutePath());
@@ -98,6 +104,10 @@ public class ContractAnalyzer {
         if (contractStateInDB == null) {
             contractStateRepository.save(contractState);
         }
+        else {
+            contractStateInDB.setRemaining(contractStateInDB.getRemaining() + contractState.getRemaining());
+            contractStateRepository.save(contractStateInDB);
+        }
     }
 
     private void updateCustomerInfo(Row row, String customerId, String scale, File contractFile) {
@@ -111,8 +121,9 @@ public class ContractAnalyzer {
         }
         else {
             try {
-                String custmerName = CellContentUtil.getStringContent(row.getCell(44));
-                Customer newCustomer = new Customer(customerId, custmerName, "", "", "",
+                String custmerName = CellContentUtil.getStringContent(row.getCell(50));
+                String branch = CellContentUtil.getStringContent(row.getCell(8));
+                Customer newCustomer = new Customer(customerId, custmerName, "", scale, branch,
                         null, null, null, null, "",0);
                 customerRepository.save(newCustomer);
             } catch (CellContentException e) {
@@ -123,6 +134,15 @@ public class ContractAnalyzer {
 
     private void createContract(String contractId, String customerId) {
         contractRepository.save(new Contract(contractId, customerId));
+    }
+
+    private String ignoreUsedContent(String content) {
+        if (content == null || content.equals("") || content.startsWith(" ") || content.contains("-")) {
+            return "";
+        }
+        else {
+            return content;
+        }
     }
 
 }

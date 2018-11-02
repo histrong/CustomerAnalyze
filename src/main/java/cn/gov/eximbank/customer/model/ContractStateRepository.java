@@ -9,4 +9,6 @@ public interface ContractStateRepository extends CrudRepository<ContractState, S
     ContractState findByPeriodAndContractId(String period, String contractId);
 
     List<ContractState> findByPeriod(String period);
+
+    List<ContractState> findByPeriodAndQualityLevelGreaterThan(String period, int level);
 }

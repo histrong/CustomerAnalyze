@@ -2,6 +2,7 @@ package cn.gov.eximbank.customer;
 
 import cn.gov.eximbank.customer.analyzer.ContractAnalyzer;
 import cn.gov.eximbank.customer.analyzer.CustomerAnalyzer;
+import cn.gov.eximbank.customer.analyzer.CustomerReporter;
 import cn.gov.eximbank.customer.analyzer.Reporter;
 import cn.gov.eximbank.customer.model.*;
 import org.slf4j.Logger;
@@ -57,8 +58,15 @@ public class AnalyzeRunner implements CommandLineRunner {
     private void report() {
         Reporter reporter = new Reporter(customerRepository, groupCustomerRepository,
                 contractRepository, contractStateRepository);
-        reporter.reportMainInfo();
-        reporter.reportGovermentCustomerInfo();
+        //reporter.reportMainInfo();
+        //reporter.reportGovermentCustomerInfo();
+//        reporter.reportCustomerScale();
+//        reporter.reportOwnership();
+
+        CustomerReporter customerReporter = new CustomerReporter(customerRepository, groupCustomerRepository,
+                contractRepository, contractStateRepository);
+        customerReporter.reportGroupCustomers();
+        customerReporter.reportBranchs();
     }
 
 }

@@ -2,10 +2,10 @@ package cn.gov.eximbank.customer.analyzer;
 
 import cn.gov.eximbank.customer.model.*;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import javax.persistence.criteria.CriteriaBuilder;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class Reporter {
 
@@ -54,6 +54,43 @@ public class Reporter {
             }
         }
         System.out.println("截止9月末仍有余额客户数 : " + remainingCusterIds.size());
+
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            Date date = format.parse("2018-09-30");
+            List<Customer> lastCreditValidCustomers = customerRepository.findAllByLastCreditDateAfter(date);
+            int count = 0;
+            for (Customer customer : lastCreditValidCustomers) {
+                if (!remainingCusterIds.contains(customer.getId())) {
+                    ++count;
+                }
+            }
+            System.out.println("余额为0但授信在有效期的客户数为 : " + count);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            Date date = format.parse("2017-12-31");
+            List<Customer> firstDealInYearCustomers = customerRepository.findAllByFirstDealDateAfter(date);
+            System.out.println("今年首次发生业务客户 : " + firstDealInYearCustomers.size());
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        List<ContractState> contractStateList = contractStateRepository.findByPeriodAndQualityLevelGreaterThan(period, 2);
+        double notgoodRemaining = 0.0;
+        for (ContractState contractState : contractStateList) {
+            notgoodRemaining += contractState.getRemaining();
+        }
+        System.out.println("不良贷款余额 : " + notgoodRemaining);
+
+        List<ContractState> lastYearContractStates = contractStateRepository.findByPeriod("201712");
+        double lastYearRemaing = 0.0;
+        for (ContractState contractState : lastYearContractStates) {
+            lastYearRemaing += contractState.getRemaining();
+        }
+        System.out.println("去年年末余额 : " + lastYearRemaing + ", 本年度新增 : " + (totalRemaing - lastYearRemaing));
     }
 
     public void reportGovermentCustomerInfo() {
@@ -82,5 +119,109 @@ public class Reporter {
             contracts.addAll(currerntCustomerContracts);
         }
         return contracts;
+    }
+
+    public void reportCustomerScale() {
+        String period1 = "201712";
+        String period2 = "201809";
+
+        List<ContractState> lastYearContractStates = contractStateRepository.findByPeriod(period1);
+        List<ContractState> currentContractStates = contractStateRepository.findByPeriod(period2);
+        analyzeCustomerScale(lastYearContractStates, period1);
+        analyzeCustomerScale(currentContractStates, period2);
+    }
+
+    private void analyzeCustomerScale(List<ContractState> contractStates, String tag) {
+        Map<String, CustomerAnalyzeInfo> customerAnalyzeInfos = new HashMap<String, CustomerAnalyzeInfo>();
+        for (ContractState contractState : contractStates) {
+            String customerId = contractState.getCustomerId();
+            if (contractState.getProvince() == null || contractState.getProvince().equals("")) {
+                continue;
+            }
+            if (customerAnalyzeInfos.containsKey(customerId)) {
+                customerAnalyzeInfos.get(customerId).remaining += contractState.getRemaining();
+            }
+            else {
+                CustomerAnalyzeInfo info = new CustomerAnalyzeInfo();
+                info.id = contractState.getCustomerId();
+                info.remaining = contractState.getRemaining();
+                info.scale = contractState.getScale();
+                customerAnalyzeInfos.put(customerId, info);
+            }
+        }
+
+        Map<String, Integer> scaleCount = new HashMap<String, Integer>();
+        Map<String, Double> scaleRemaning = new HashMap<String, Double>();
+        for (String customerId : customerAnalyzeInfos.keySet()) {
+            CustomerAnalyzeInfo info = customerAnalyzeInfos.get(customerId);
+            if (scaleCount.containsKey(info.scale)) {
+                Integer last = scaleCount.get(info.scale);
+                scaleCount.put(info.scale, last + 1);
+                Double lastRemaing = scaleRemaning.get(info.scale);
+                scaleRemaning.put(info.scale, lastRemaing + info.remaining);
+            }
+            else {
+                scaleCount.put(info.scale, 1);
+                scaleRemaning.put(info.scale, info.remaining);
+            }
+        }
+
+        for (String scale : scaleCount.keySet()) {
+            System.out.println(scale + " 数量 : " + scaleCount.get(scale));
+            System.out.println(scale + " 余额 : " + scaleRemaning.get(scale));
+        }
+    }
+
+    public void reportOwnership() {
+        String period1 = "201712";
+        String period2 = "201809";
+
+        List<ContractState> lastYearContractStates = contractStateRepository.findByPeriod(period1);
+        List<ContractState> currentContractStates = contractStateRepository.findByPeriod(period2);
+        analyzeCustomerOwnerShip(lastYearContractStates, period1);
+        analyzeCustomerOwnerShip(currentContractStates, period2);
+    }
+
+    private void analyzeCustomerOwnerShip(List<ContractState> contractStates, String tag) {
+        System.out.println(tag);
+        Map<String, CustomerAnalyzeInfo> customerAnalyzeInfos = new HashMap<String, CustomerAnalyzeInfo>();
+        for (ContractState contractState : contractStates) {
+            String customerId = contractState.getCustomerId();
+            if (contractState.getProvince() == null || contractState.getProvince().equals("")) {
+                continue;
+            }
+            if (customerAnalyzeInfos.containsKey(customerId)) {
+                customerAnalyzeInfos.get(customerId).remaining += contractState.getRemaining();
+            }
+            else {
+                CustomerAnalyzeInfo info = new CustomerAnalyzeInfo();
+                info.id = contractState.getCustomerId();
+                info.remaining = contractState.getRemaining();
+                info.scale = contractState.getScale();
+                info.onwership = contractState.getOwnership();
+                customerAnalyzeInfos.put(customerId, info);
+            }
+        }
+
+        Map<String, Integer> scaleCount = new HashMap<String, Integer>();
+        Map<String, Double> scaleRemaning = new HashMap<String, Double>();
+        for (String customerId : customerAnalyzeInfos.keySet()) {
+            CustomerAnalyzeInfo info = customerAnalyzeInfos.get(customerId);
+            if (scaleCount.containsKey(info.onwership)) {
+                Integer last = scaleCount.get(info.onwership);
+                scaleCount.put(info.onwership, last + 1);
+                Double lastRemaing = scaleRemaning.get(info.onwership);
+                scaleRemaning.put(info.onwership, lastRemaing + info.remaining);
+            }
+            else {
+                scaleCount.put(info.onwership, 1);
+                scaleRemaning.put(info.onwership, info.remaining);
+            }
+        }
+
+        for (String scale : scaleCount.keySet()) {
+            System.out.println(scale + " 数量 : " + scaleCount.get(scale));
+            System.out.println(scale + " 余额 : " + scaleRemaning.get(scale));
+        }
     }
 }

@@ -73,7 +73,7 @@ public class CustomerAnalyzer {
                     return groupCustomer;
                 }
                 else {
-                    groupCustomerInDB.get();
+                    return groupCustomerInDB.get();
                 }
             } else {
                 return null;
