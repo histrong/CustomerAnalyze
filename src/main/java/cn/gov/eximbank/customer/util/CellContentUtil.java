@@ -15,7 +15,7 @@ public class CellContentUtil {
 
     private static Logger logger = LoggerFactory.getLogger(CellContentUtil.class);
 
-    public static String getStringContent(Cell cell) throws CellContentException {
+    public static String getStringContent(Cell cell) {
         if (cell.getCellTypeEnum().equals(CellType.STRING)) {
             return cell.getStringCellValue();
         }
@@ -26,7 +26,7 @@ public class CellContentUtil {
             return "";
         }
         else if (cell.getCellTypeEnum().equals(CellType._NONE)) {
-            return null;
+            return "";
         }
         else if (cell.getCellTypeEnum().equals(CellType.FORMULA)) {
             FormulaEvaluator evaluator = cell.getSheet().getWorkbook().getCreationHelper().createFormulaEvaluator();
@@ -36,11 +36,12 @@ public class CellContentUtil {
             return value;
         }
         else {
-            throw new CellContentException(cell.getRowIndex(), cell.getColumnIndex());
+            logReadCellError("String", cell);
+            return "";
         }
     }
 
-    public static double getNumericContent(Cell cell) throws CellContentException {
+    public static double getNumericContent(Cell cell) {
         if (cell.getCellTypeEnum().equals(CellType.NUMERIC)) {
             return cell.getNumericCellValue();
         }
@@ -48,11 +49,12 @@ public class CellContentUtil {
             return Double.valueOf(cell.getStringCellValue());
         }
         else {
-            throw new CellContentException(cell.getRowIndex(), cell.getColumnIndex());
+            logReadCellError("Double", cell);
+            return 0;
         }
     }
 
-    public static Date getDateContent(Cell cell) throws CellContentException {
+    public static Date getDateContent(Cell cell) {
         if (cell.getCellTypeEnum().equals(CellType.STRING)) {
             String dateString = cell.getStringCellValue();
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
@@ -64,12 +66,18 @@ public class CellContentUtil {
                     return format.parse(dateString);
                 }
             } catch (ParseException e) {
-                e.printStackTrace();
-                throw new CellContentException(cell.getRowIndex(), cell.getColumnIndex());
+                logReadCellError("Date", cell);
+                throw null;
             }
         }
         else {
-            throw new CellContentException(cell.getRowIndex(), cell.getColumnIndex());
+            logReadCellError("Date", cell);
+            return null;
         }
+    }
+
+    private static void logReadCellError(String type, Cell cell) {
+        logger.error("Read " + type + " cell error, row : " + cell.getRowIndex()
+                + ", column : " + cell.getColumnIndex());
     }
 }
