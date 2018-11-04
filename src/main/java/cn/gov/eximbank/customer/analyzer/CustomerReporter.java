@@ -45,13 +45,11 @@ public class CustomerReporter {
     }
 
     public void reportBranchs() {
-        String lastYearPeriod = "201712";
-        String currentPeriod = "201809";
-        Map<String, CustomerAnalyzeInfo> lastYearCustomerAnalyzeInfos = getCustomerAnalyzeInfos(lastYearPeriod);
-        Map<String, CustomerAnalyzeInfo> currentCustomerAnalyzeInfos = getCustomerAnalyzeInfos(currentPeriod);
-
-        reportBranchInfos(lastYearCustomerAnalyzeInfos, lastYearPeriod);
-        reportBranchInfos(currentCustomerAnalyzeInfos, currentPeriod);
+        String[] periods = new String[] {"201703", "201706", "201709", "201712", "201803", "201806", "201809"};
+        for (String period : periods) {
+            Map<String, CustomerAnalyzeInfo> analyzeInfos = getCustomerAnalyzeInfos(period);
+            reportBranchInfos(analyzeInfos, period);
+        }
     }
 
     class BranchInfo {
@@ -110,6 +108,9 @@ public class CustomerReporter {
     }
 
     private void handleSingleCustomerAnalyzeInfo(CustomerAnalyzeInfo customerAnalyzeInfo, Map<String, BranchInfo> branchs) {
+        if (customerAnalyzeInfo.branch.equals("巴黎分行")) {
+            int i = 0;
+        }
         if (branchs.containsKey(customerAnalyzeInfo.branch)) {
             BranchInfo branchInfo = branchs.get(customerAnalyzeInfo.branch);
             ++branchInfo.customerCount;
