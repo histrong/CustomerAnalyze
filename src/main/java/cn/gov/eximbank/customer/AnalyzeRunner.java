@@ -25,6 +25,9 @@ public class AnalyzeRunner implements CommandLineRunner {
     @Autowired
     private GroupCustomerRepository groupCustomerRepository;
 
+    @Autowired
+    private ValidCustomerStateRepository validCustomerStateRepository;
+
     @Override
     public void run(String... args) throws Exception {
         if (args.length != 1) {
@@ -43,7 +46,8 @@ public class AnalyzeRunner implements CommandLineRunner {
     }
 
     private void readContracts() {
-        ContractAnalyzer contractAnalyzer = new ContractAnalyzer(contractRepository, contractStateRepository, customerRepository);
+        ContractAnalyzer contractAnalyzer = new ContractAnalyzer(contractRepository, contractStateRepository,
+                customerRepository, validCustomerStateRepository);
         contractAnalyzer.readContractFiles();
     }
 
