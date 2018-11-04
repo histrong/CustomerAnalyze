@@ -27,11 +27,11 @@ public class Reporter {
 
     public void reportMainInfo() {
         int validCustomerCount = 0;
-        for (Customer customer : customerRepository.findAll()) {
-            if (customer.getFirstDealDate() != null || !customer.isInSystem()) {
-                ++validCustomerCount;
-            }
-        }
+//        for (Customer customer : customerRepository.findAll()) {
+//            if (customer.getFirstDealDate() != null || !customer.isInSystem()) {
+//                ++validCustomerCount;
+//            }
+//        }
         System.out.println("历史有效客户数 : " + validCustomerCount);
 
         String period = "201809";
@@ -46,8 +46,8 @@ public class Reporter {
 
         for (ContractState contractState : contractStates) {
             if (contractState.getRemaining() > 0.01) {
-                Contract contract = contractRepository.findContractById(contractState.getContractId());
-                remainingCusterIds.add(contract.getCustomerId());
+//                Contract contract = contractRepository.findContractById(contractState.getContractId());
+//                remainingCusterIds.add(contract.getCustomerId());
             }
             else {
                 System.out.println("余额为0 : " + contractState.getRemaining());
@@ -135,9 +135,9 @@ public class Reporter {
         Map<String, CustomerAnalyzeInfo> customerAnalyzeInfos = new HashMap<String, CustomerAnalyzeInfo>();
         for (ContractState contractState : contractStates) {
             String customerId = contractState.getCustomerId();
-            if (contractState.getProvince() == null || contractState.getProvince().equals("")) {
-                continue;
-            }
+//            if (contractState.getProvince() == null || contractState.getProvince().equals("")) {
+//                continue;
+//            }
             if (customerAnalyzeInfos.containsKey(customerId)) {
                 customerAnalyzeInfos.get(customerId).remaining += contractState.getRemaining();
             }
@@ -145,7 +145,7 @@ public class Reporter {
                 CustomerAnalyzeInfo info = new CustomerAnalyzeInfo();
                 info.id = contractState.getCustomerId();
                 info.remaining = contractState.getRemaining();
-                info.scale = contractState.getScale();
+//                info.scale = contractState.getScale();
                 customerAnalyzeInfos.put(customerId, info);
             }
         }
@@ -187,9 +187,9 @@ public class Reporter {
         Map<String, CustomerAnalyzeInfo> customerAnalyzeInfos = new HashMap<String, CustomerAnalyzeInfo>();
         for (ContractState contractState : contractStates) {
             String customerId = contractState.getCustomerId();
-            if (contractState.getProvince() == null || contractState.getProvince().equals("")) {
-                continue;
-            }
+//            if (contractState.getProvince() == null || contractState.getProvince().equals("")) {
+//                continue;
+//            }
             if (customerAnalyzeInfos.containsKey(customerId)) {
                 customerAnalyzeInfos.get(customerId).remaining += contractState.getRemaining();
             }
@@ -197,8 +197,8 @@ public class Reporter {
                 CustomerAnalyzeInfo info = new CustomerAnalyzeInfo();
                 info.id = contractState.getCustomerId();
                 info.remaining = contractState.getRemaining();
-                info.scale = contractState.getScale();
-                info.onwership = contractState.getOwnership();
+//                info.scale = contractState.getScale();
+//                info.onwership = contractState.getOwnership();
                 customerAnalyzeInfos.put(customerId, info);
             }
         }

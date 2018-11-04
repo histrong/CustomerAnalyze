@@ -1,7 +1,6 @@
 package cn.gov.eximbank.customer.analyzer;
 
 import cn.gov.eximbank.customer.model.*;
-import cn.gov.eximbank.customer.util.CellContentException;
 import cn.gov.eximbank.customer.util.CellContentUtil;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
@@ -31,18 +30,22 @@ public class ContractAnalyzer {
 
     private CustomerRepository customerRepository;
 
+    private ValidCustomerStateRepository validCustomerStateRepository;
+
     public ContractAnalyzer(ContractRepository contractRepository,
                             ContractStateRepository contractStateRepository,
-                            CustomerRepository customerRepository) {
+                            CustomerRepository customerRepository,
+                            ValidCustomerStateRepository validCustomerStateRepository) {
         this.contractRepository = contractRepository;
         this.contractStateRepository = contractStateRepository;
         this.customerRepository = customerRepository;
+        this.validCustomerStateRepository = validCustomerStateRepository;
     }
 
     public void readContractFiles() {
-        for (int i = 0; i != contractFileNames.length; ++i)
+//        for (int i = 0; i != contractFileNames.length; ++i)
         {
-            //int i = ;
+            int i = 0;
             String fileName = contractFileNames[i];
             String period = periods[i];
             File contractFile = new File(dataPathStr + File.separator + fileName);
@@ -61,36 +64,10 @@ public class ContractAnalyzer {
             Sheet sheet = wb.getSheetAt(0);
             for (int i = 5; i != sheet.getLastRowNum() + 1; ++i) {
                 Row row = sheet.getRow(i);
-                try {
-                    String contractId = CellContentUtil.getStringContent(row.getCell(7));
-                    if (contractId == null || contractId.equals("")) {
-                        contractId = CellContentUtil.getStringContent(row.getCell(2));
-                    }
-                    contractId = contractId.trim();
-                    double remaining = CellContentUtil.getNumericContent(row.getCell(10));
-                    String customerId = CellContentUtil.getStringContent(row.getCell(49));
-                    String scale = CellContentUtil.getStringContent(row.getCell(57));
-                    String ownership = ignoreUsedContent(CellContentUtil.getStringContent(row.getCell(60)));
-                    String province = ignoreUsedContent(CellContentUtil.getStringContent(row.getCell(68)));
-                    String industry = ignoreUsedContent(CellContentUtil.getStringContent(row.getCell(55)));
-                    updateCustomerInfo(row, customerId, scale, contractFile);
-                    String qualityLevelStr = "";
-                    if (period.startsWith("2018")) {
-                        qualityLevelStr = CellContentUtil.getStringContent(row.getCell(109));
-                    }
-                    else {
-                        qualityLevelStr = CellContentUtil.getStringContent(row.getCell(104));
-                    }
-                    Contract contract = contractRepository.findContractById(contractId);
-                    if (contract == null) {
-                        createContract(contractId, customerId);
-                    }
-                    ContractState contractState = new ContractState(contractId, period, remaining, qualityLevelStr,
-                            customerId, scale, ownership, industry, province);
-                    updateContractState(contractState);
-                } catch (CellContentException e) {
-                    logger.error("Read error : row : " + e.getRowIndex() + ", column : " + e.getColumnIndex() + " of " + contractFile.getAbsolutePath());
-                }
+                ContractState contractState = readContractState(row, period);
+                ValidCustomerState validCustomerState = readValidCustomerState(row, period);
+                updateContractState(contractState);
+                updateValidCustomerState(validCustomerState);
             }
         } catch (InvalidFormatException e) {
             e.printStackTrace();
@@ -99,7 +76,58 @@ public class ContractAnalyzer {
         }
     }
 
+    private ContractState readContractState(Row row, String period) {
+        String contractId = getContractId(row);
+        double remaining = CellContentUtil.getNumericContent(row.getCell(10));
+        String qualityLevelStr = "";
+        if (period.startsWith("2018")) {
+            qualityLevelStr = CellContentUtil.getStringContent(row.getCell(109));
+        }
+        else {
+            qualityLevelStr = CellContentUtil.getStringContent(row.getCell(104));
+        }
+        String customerId = CellContentUtil.getStringContent(row.getCell(49));
+        String branch = CellContentUtil.getStringContent(row.getCell(8));
+        String investDirection = CellContentUtil.getStringContent(row.getCell(31));
+        return new ContractState(contractId, period, remaining, qualityLevelStr, customerId,
+                branch, investDirection);
+    }
+
+    private ValidCustomerState readValidCustomerState(Row row, String period) {
+        String customerId = CellContentUtil.getStringContent(row.getCell(49));
+        String customerName = CellContentUtil.getStringContent(row.getCell(50));
+        double remaining = CellContentUtil.getNumericContent(row.getCell(10));
+        String scale = CellContentUtil.getStringContent(row.getCell(57));
+        String ownership = ignoreUsedContent(CellContentUtil.getStringContent(row.getCell(60)));
+        String industry = ignoreUsedContent(CellContentUtil.getStringContent(row.getCell(55)));
+        String branch = "";
+        Optional<Customer> customerInDB = customerRepository.findById(customerId);
+        if (customerInDB.isPresent()) {
+            branch = customerInDB.get().getBranch();
+        }
+        else {
+            branch = CellContentUtil.getStringContent(row.getCell(8));
+        }
+        String province = ignoreUsedContent(CellContentUtil.getStringContent(row.getCell(68)));
+        return new ValidCustomerState(customerId, customerName, period, remaining, scale, ownership,
+                industry, branch, province);
+    }
+
+    private String getContractId(Row row) {
+        String contractId = CellContentUtil.getStringContent(row.getCell(7));
+        if (contractId == null || contractId.equals("")) {
+            contractId = CellContentUtil.getStringContent(row.getCell(2));
+        }
+        return contractId.trim();
+    }
+
     private void updateContractState(ContractState contractState) {
+        Optional<Contract> contractInDB = contractRepository.findById(contractState.getContractId());
+        if (!contractInDB.isPresent()) {
+            contractRepository.save(new Contract(contractState.getContractId(),
+                    contractState.getCustomerId()));
+        }
+
         ContractState contractStateInDB = contractStateRepository.findByPeriodAndContractId(contractState.getPeriod(), contractState.getContractId());
         if (contractStateInDB == null) {
             contractStateRepository.save(contractState);
@@ -110,30 +138,17 @@ public class ContractAnalyzer {
         }
     }
 
-    private void updateCustomerInfo(Row row, String customerId, String scale, File contractFile) {
-        Optional<Customer> customerIdDB = customerRepository.findById(customerId);
-        if (customerIdDB.isPresent()) {
-            Customer customer = customerIdDB.get();
-            if (customer.getScale() == null || customer.getScale().equals("")) {
-                customer.setScale(scale);
-                customerRepository.save(customer);
-            }
+    private void updateValidCustomerState(ValidCustomerState validCustomerState) {
+        ValidCustomerState validCustomerStateInDB = validCustomerStateRepository
+                .findByPeriodAndCustomerId(validCustomerState.getPeriod(), validCustomerState.getCustomerId());
+        if (validCustomerStateInDB == null) {
+            validCustomerStateRepository.save(validCustomerState);
         }
         else {
-            try {
-                String custmerName = CellContentUtil.getStringContent(row.getCell(50));
-                String branch = CellContentUtil.getStringContent(row.getCell(8));
-                Customer newCustomer = new Customer(customerId, custmerName, "", scale, branch,
-                        null, null, null, null, "",0);
-                customerRepository.save(newCustomer);
-            } catch (CellContentException e) {
-                e.printStackTrace();
-            }
+            validCustomerStateInDB.setRemaining(validCustomerStateInDB.getRemaining()
+                    + validCustomerState.getRemaining());
+            validCustomerStateRepository.save(validCustomerStateInDB);
         }
-    }
-
-    private void createContract(String contractId, String customerId) {
-        contractRepository.save(new Contract(contractId, customerId));
     }
 
     private String ignoreUsedContent(String content) {

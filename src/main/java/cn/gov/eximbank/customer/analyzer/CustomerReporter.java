@@ -181,8 +181,8 @@ public class CustomerReporter {
                 CustomerAnalyzeInfo info = new CustomerAnalyzeInfo();
                 info.id = contractState.getCustomerId();
                 info.remaining = contractState.getRemaining();
-                info.scale = contractState.getScale();
-                info.industry = contractState.getIndustry();
+//                info.scale = contractState.getScale();
+//                info.industry = contractState.getIndustry();
                 String branch = "未知";
                 Optional<Customer> customerInDB = customerRepository.findById(contractState.getCustomerId());
                 if (customerInDB.isPresent()) {
