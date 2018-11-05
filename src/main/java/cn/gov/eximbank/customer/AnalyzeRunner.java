@@ -2,6 +2,7 @@ package cn.gov.eximbank.customer;
 
 import cn.gov.eximbank.customer.analyzer.*;
 import cn.gov.eximbank.customer.model.*;
+import cn.gov.eximbank.customer.reporter.CustomerReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,10 +65,12 @@ public class AnalyzeRunner implements CommandLineRunner {
 //        reporter.reportCustomerScale();
 //        reporter.reportOwnership();
 
-        CustomerReporter customerReporter = new CustomerReporter(customerRepository, groupCustomerRepository,
+        CustomerReporter customerReporter = new CustomerReporter(customerRepository,
+                groupCustomerRepository, validCustomerStateRepository,
                 contractRepository, contractStateRepository);
-//        customerReporter.reportGroupCustomers();
-        customerReporter.reportBranchs();
+//        customerReporter.reportCustomers();
+        customerReporter.reportGroupCustomers();
+//        customerReporter.reportBranchs();
 
         QualityLevelReporter qualityLevelReporter = new QualityLevelReporter(customerRepository, groupCustomerRepository,
                 contractRepository, contractStateRepository);

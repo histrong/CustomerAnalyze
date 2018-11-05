@@ -1,5 +1,6 @@
-package cn.gov.eximbank.customer.analyzer;
+package cn.gov.eximbank.customer.reporter;
 
+import cn.gov.eximbank.customer.analyzer.CustomerAnalyzeInfo;
 import cn.gov.eximbank.customer.model.*;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -13,36 +14,50 @@ public class CustomerReporter {
 
     private GroupCustomerRepository groupCustomerRepository;
 
+    private ValidCustomerStateRepository validCustomerStateRepository;
+
     private ContractRepository contractRepository;
 
     private ContractStateRepository contractStateRepository;
 
-    public CustomerReporter(CustomerRepository customerRepository, GroupCustomerRepository groupCustomerRepository,
-                            ContractRepository contractRepository, ContractStateRepository contractStateRepository) {
+    public CustomerReporter(CustomerRepository customerRepository,
+                            GroupCustomerRepository groupCustomerRepository,
+                            ValidCustomerStateRepository validCustomerStateRepository,
+                            ContractRepository contractRepository,
+                            ContractStateRepository contractStateRepository) {
         this.customerRepository = customerRepository;
         this.groupCustomerRepository = groupCustomerRepository;
+        this.validCustomerStateRepository = validCustomerStateRepository;
         this.contractRepository = contractRepository;
         this.contractStateRepository = contractStateRepository;
     }
 
-    public void reportGroupCustomers() {
-        Set<String> validCustomers = getValidCustomers();
-        Set<String> groupIds = new HashSet<String>();
-        for (String id : validCustomers) {
-            Optional<Customer> customerInDB = customerRepository.findById(id);
-            if (customerInDB.isPresent()) {
-                String groupId = customerInDB.get().getGroupId();
-                if (groupId != null && !groupId.equals("")) {
-                    groupIds.add(groupId);
-                }
-            }
-        }
-
-        for (String groupId : groupIds) {
-            System.out.println(groupId);
-        }
-        System.out.println("集团总数是 : " + groupIds.size());
+    public void reportCustomers() {
+        Set<String> validCustomerIds = getValidCustomerIds(validCustomerStateRepository);
+        Set<String> creditCustomerIds = getCreditCustomerIds(customerRepository);
+        Set<String> totalCustomerIds = new HashSet<String>();
+        totalCustomerIds.addAll(validCustomerIds);
+        totalCustomerIds.addAll(creditCustomerIds);
+        System.out.println("2018年9月仍有余额客户数 : " + validCustomerStateRepository.findByPeriod("201809").size());
+        System.out.println("2017年3月至今曾经有余额客户数为 :" + validCustomerIds.size());
+        System.out.println("2017年3月至今包含评级未过期的有效客户数为 : " + totalCustomerIds.size());
     }
+
+    public void reportGroupCustomers() {
+        Set<String> validCustomerIds = getValidCustomerIds(validCustomerStateRepository);
+        Set<String> creditCustomerIds = getCreditCustomerIds(customerRepository);
+        Set<String> totalCustomerIds = new HashSet<String>();
+        totalCustomerIds.addAll(validCustomerIds);
+        totalCustomerIds.addAll(creditCustomerIds);
+
+        System.out.println("2018年9月末仍有余额集团数量 : " +
+                getGroupIdsForCustomers(customerRepository,
+                        getLatestValidCustomerIds(validCustomerStateRepository)).size());
+        System.out.println("2017年3月至今所有有效集团数量 : " +
+                getGroupIdsForCustomers(customerRepository, totalCustomerIds).size());
+    }
+
+
 
     public void reportBranchs() {
         String[] periods = new String[] {"201703", "201706", "201709", "201712", "201803", "201806", "201809"};
@@ -116,10 +131,10 @@ public class CustomerReporter {
             ++branchInfo.customerCount;
             branchInfo.remaining += customerAnalyzeInfo.remaining;
             handleSingleCustomerInfoInScale(customerAnalyzeInfo, branchInfo);
-            if (isInGroup(customerAnalyzeInfo.id)) {
-                ++branchInfo.groupCount;
-                branchInfo.groupRemaining += customerAnalyzeInfo.remaining;
-            }
+//            if (isInGroup(customerAnalyzeInfo.id)) {
+//                ++branchInfo.groupCount;
+//                branchInfo.groupRemaining += customerAnalyzeInfo.remaining;
+//            }
         }
         else {
             BranchInfo branchInfo = new BranchInfo();
@@ -129,10 +144,10 @@ public class CustomerReporter {
             branchInfo.scaleCustomerRemaining = new HashMap<String, Double>();
             branchInfo.scaleCustomerCount.put(customerAnalyzeInfo.scale, 1);
             branchInfo.scaleCustomerRemaining.put(customerAnalyzeInfo.scale, customerAnalyzeInfo.remaining);
-            if (isInGroup(customerAnalyzeInfo.id)) {
-                branchInfo.groupCount = 1;
-                branchInfo.groupRemaining = customerAnalyzeInfo.remaining;
-            }
+//            if (isInGroup(customerAnalyzeInfo.id)) {
+//                branchInfo.groupCount = 1;
+//                branchInfo.groupRemaining = customerAnalyzeInfo.remaining;
+//            }
             branchs.put(customerAnalyzeInfo.branch, branchInfo);
         }
     }
@@ -150,20 +165,15 @@ public class CustomerReporter {
         }
     }
 
-    private boolean isInGroup(String customerId) {
-        Optional<Customer> customerInDB = customerRepository.findById(customerId);
-        if (customerInDB.isPresent()) {
-            String groupId = customerInDB.get().getGroupId();
-            if (groupId != null && !groupId.equals("")) {
-                return true;
-            }
-            else {
-                return false;
-            }
-        }
-        else {
+    private static boolean isInGroup(Customer customer) {
+        String groupId = customer.getGroupId();
+        if (groupId == null || groupId.equals("")) {
             return false;
         }
+        else {
+            return true;
+        }
+
     }
 
     public Map<String, CustomerAnalyzeInfo> getCustomerAnalyzeInfos(String period) {
@@ -215,5 +225,55 @@ public class CustomerReporter {
             e.printStackTrace();
         }
         return validCustomers;
+    }
+
+    public static Set<String> getLatestValidCustomerIds(ValidCustomerStateRepository validCustomerStateRepository) {
+        String period = ReporterUtil.getPeriods()[0];
+        Set<String> latestValidCustomerIds = new HashSet<String>();
+        List<ValidCustomerState> validCustomerStates
+                = validCustomerStateRepository.findByPeriod(period);
+        for (ValidCustomerState validCustomerState : validCustomerStates) {
+            latestValidCustomerIds.add(validCustomerState.getCustomerId());
+        }
+        return latestValidCustomerIds;
+    }
+
+    public static Set<String> getValidCustomerIds(ValidCustomerStateRepository validCustomerStateRepository) {
+        Set<String> validCustomerIds = new HashSet<String>();
+        for (String period : ReporterUtil.getPeriods()) {
+            List<ValidCustomerState> validCustomerStates
+                    = validCustomerStateRepository.findByPeriod(period);
+            for (ValidCustomerState validCustomerState : validCustomerStates) {
+                validCustomerIds.add(validCustomerState.getCustomerId());
+            }
+        }
+        return validCustomerIds;
+    }
+
+    public static Set<String> getCreditCustomerIds(CustomerRepository customerRepository) {
+        Set<String> creditCustomerIds = new HashSet<String>();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            Date date = format.parse("2018-09-30");
+            List<Customer> lastCreditValidCustomers = customerRepository.findAllByLastCreditDateAfter(date);
+            for (Customer customer : lastCreditValidCustomers) {
+                creditCustomerIds.add(customer.getId());
+            }
+            return creditCustomerIds;
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return new HashSet<String>();
+        }
+    }
+
+    public static Set<String> getGroupIdsForCustomers(CustomerRepository customerRepository, Set<String> customerIds) {
+        Set<String> groupIds = new HashSet<String>();
+        for (String customerId : customerIds) {
+            Optional<Customer> customerInDB = customerRepository.findById(customerId);
+            if (customerInDB.isPresent() && isInGroup(customerInDB.get())) {
+                groupIds.add(customerInDB.get().getGroupId());
+            }
+        }
+        return groupIds;
     }
 }
