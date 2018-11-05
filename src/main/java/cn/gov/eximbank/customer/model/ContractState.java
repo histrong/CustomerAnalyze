@@ -22,29 +22,23 @@ public class ContractState {
 
     private String customerId;
 
-    private String scale;
+    private String branch;
 
-    private String ownership;
-
-    private String industry;
-
-    private String province;
+    private String investDirection;
 
     protected ContractState() {
 
     }
 
     public ContractState(String contractId, String period, double remaining, String qualityLevelStr,
-                         String customerId, String scale, String ownership, String industry, String province) {
+                         String customerId, String branch, String investDirection) {
         this.contractId = contractId;
         this.period = period;
         this.remaining = remaining;
         this.qualityLevel = toLevel(qualityLevelStr);
-        this.customerId = customerId;
-        this.scale = scale;
-        this.ownership = ownership;
-        this.industry = industry;
-        this.province = province;
+        this.customerId = customerId;;
+        this.branch = branch;
+        this.investDirection = investDirection;
     }
 
     private int toLevel(String qualityLevelStr) {
@@ -72,18 +66,6 @@ public class ContractState {
         this.remaining = remaining;
     }
 
-    public void setCustomerId(String customerId) {
-        this.customerId = customerId;
-    }
-
-    public void setScale(String scale) {
-        this.scale = scale;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
     public String getContractId() {
         return contractId;
     }
@@ -104,19 +86,11 @@ public class ContractState {
         return customerId;
     }
 
-    public String getScale() {
-        return scale;
+    public String getBranch() {
+        return branch;
     }
 
-    public String getOwnership() {
-        return ownership;
-    }
-
-    public String getIndustry() {
-        return industry;
-    }
-
-    public String getProvince() {
-        return province;
+    public String getInvestDirection() {
+        return investDirection;
     }
 }

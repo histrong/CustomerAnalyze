@@ -97,10 +97,10 @@ public class QualityLevelReporter {
             return;
         }
         
-        handleSingleContractStateWithTag(contractState.getIndustry(), contractState, industryQualities);
-        handleSingleContractStateWithTag(contractState.getScale(), contractState, scaleQualities);
-        handleSingleContractStateWithTag(customerInDB.get().getBranch(), contractState, branchQualities);
-        handleSingleContractStateWithTag(contractState.getOwnership(), contractState, ownershipQualities);
+//        handleSingleContractStateWithTag(contractState.getIndustry(), contractState, industryQualities);
+//        handleSingleContractStateWithTag(contractState.getScale(), contractState, scaleQualities);
+//        handleSingleContractStateWithTag(customerInDB.get().getBranch(), contractState, branchQualities);
+//        handleSingleContractStateWithTag(contractState.getOwnership(), contractState, ownershipQualities);
 
         String groupTag = "单一";
         if (customerInDB.get().getGroupId()!= null && !customerInDB.get().getGroupId().equals("")) {

@@ -4,7 +4,6 @@ import cn.gov.eximbank.customer.model.Customer;
 import cn.gov.eximbank.customer.model.CustomerRepository;
 import cn.gov.eximbank.customer.model.GroupCustomer;
 import cn.gov.eximbank.customer.model.GroupCustomerRepository;
-import cn.gov.eximbank.customer.util.CellContentException;
 import cn.gov.eximbank.customer.util.CellContentUtil;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
@@ -62,55 +61,43 @@ public class CustomerAnalyzer {
     }
 
     private GroupCustomer readGroup(Row row) {
-        try {
-            String groupId = CellContentUtil.getStringContent(row.getCell(4));
-            String groupName = CellContentUtil.getStringContent(row.getCell(5));
-            if (groupId != null && groupName != null && !groupId.equals("")) {
-                Optional<GroupCustomer> groupCustomerInDB = groupCustomerRepository.findById(groupId);
-                if (!groupCustomerInDB.isPresent()) {
-                    GroupCustomer groupCustomer = new GroupCustomer(groupId, groupName);
-                    groupCustomerRepository.save(groupCustomer);
-                    return groupCustomer;
-                }
-                else {
-                    return groupCustomerInDB.get();
-                }
-            } else {
-                return null;
+        String groupId = CellContentUtil.getStringContent(row.getCell(4));
+        String groupName = CellContentUtil.getStringContent(row.getCell(5));
+        if (groupId != null && groupName != null && !groupId.equals("")) {
+            Optional<GroupCustomer> groupCustomerInDB = groupCustomerRepository.findById(groupId);
+            if (!groupCustomerInDB.isPresent()) {
+                GroupCustomer groupCustomer = new GroupCustomer(groupId, groupName);
+                groupCustomerRepository.save(groupCustomer);
+                return groupCustomer;
             }
-        } catch (CellContentException e) {
-            logger.error("Read error : row : " + e.getRowIndex() + ", column : " + e.getColumnIndex());
-            e.printStackTrace();
+            else {
+                return groupCustomerInDB.get();
+            }
+        } else {
+            return null;
         }
-        return null;
     }
 
     private Customer readCustomer(Row row, GroupCustomer groupCustomer) {
-        try {
-            String customerId = CellContentUtil.getStringContent(row.getCell(1));
-            String customerName = CellContentUtil.getStringContent(row.getCell(2));
-            Date relationshipDate = CellContentUtil.getDateContent(row.getCell(6));
-            Date firstDealDate = CellContentUtil.getDateContent(row.getCell(7));
-            Date lastCreditDate = CellContentUtil.getDateContent(row.getCell(8));
-            Date lastDealClearDate = CellContentUtil.getDateContent(row.getCell(9));
-            String branch = getBranch(CellContentUtil.getStringContent(row.getCell(10)));
-            String manager = CellContentUtil.getStringContent(row.getCell(11));
-            Customer customer = null;
-            if (groupCustomer != null) {
-                customer = new Customer(customerId, customerName, groupCustomer.getId(), "", branch, relationshipDate,
-                        firstDealDate, lastCreditDate, lastDealClearDate, manager, 1);
-            }
-            else {
-                customer = new Customer(customerId, customerName, "", "", branch, relationshipDate,
-                        firstDealDate, lastCreditDate, lastDealClearDate, manager, 1);
-            }
-            customerRepository.save(customer);
-            return customer;
-        } catch (CellContentException e) {
-            logger.error("Read error : row : " + e.getRowIndex() + ", column : " + e.getColumnIndex());
-            e.printStackTrace();
+        String customerId = CellContentUtil.getStringContent(row.getCell(1));
+        String customerName = CellContentUtil.getStringContent(row.getCell(2));
+        Date relationshipDate = CellContentUtil.getDateContent(row.getCell(6));
+        Date firstDealDate = CellContentUtil.getDateContent(row.getCell(7));
+        Date lastCreditDate = CellContentUtil.getDateContent(row.getCell(8));
+        Date lastDealClearDate = CellContentUtil.getDateContent(row.getCell(9));
+        String branch = getBranch(CellContentUtil.getStringContent(row.getCell(10)));
+        String manager = CellContentUtil.getStringContent(row.getCell(11));
+        Customer customer = null;
+        if (groupCustomer != null) {
+            customer = new Customer(customerId, customerName, groupCustomer.getId(), branch, manager,
+                    relationshipDate, firstDealDate, lastCreditDate, lastDealClearDate);
         }
-        return null;
+        else {
+            customer = new Customer(customerId, customerName, "", branch, manager,
+                    relationshipDate, firstDealDate, lastCreditDate, lastDealClearDate);
+        }
+        customerRepository.save(customer);
+        return customer;
     }
 
     private String getBranch(String content) {

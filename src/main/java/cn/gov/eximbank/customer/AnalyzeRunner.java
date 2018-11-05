@@ -2,6 +2,9 @@ package cn.gov.eximbank.customer;
 
 import cn.gov.eximbank.customer.analyzer.*;
 import cn.gov.eximbank.customer.model.*;
+import cn.gov.eximbank.customer.reporter.CustomerDetailReporter;
+import cn.gov.eximbank.customer.reporter.CustomerReporter;
+import cn.gov.eximbank.customer.reporter.RemainingReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +28,9 @@ public class AnalyzeRunner implements CommandLineRunner {
     @Autowired
     private GroupCustomerRepository groupCustomerRepository;
 
+    @Autowired
+    private ValidCustomerStateRepository validCustomerStateRepository;
+
     @Override
     public void run(String... args) throws Exception {
         if (args.length != 1) {
@@ -43,7 +49,8 @@ public class AnalyzeRunner implements CommandLineRunner {
     }
 
     private void readContracts() {
-        ContractAnalyzer contractAnalyzer = new ContractAnalyzer(contractRepository, contractStateRepository, customerRepository);
+        ContractAnalyzer contractAnalyzer = new ContractAnalyzer(contractRepository, contractStateRepository,
+                customerRepository, validCustomerStateRepository);
         contractAnalyzer.readContractFiles();
     }
 
@@ -53,17 +60,20 @@ public class AnalyzeRunner implements CommandLineRunner {
     }
 
     private void report() {
-        Reporter reporter = new Reporter(customerRepository, groupCustomerRepository,
+        CustomerReporter customerReporter = new CustomerReporter(customerRepository,
+                groupCustomerRepository, validCustomerStateRepository,
                 contractRepository, contractStateRepository);
-        //reporter.reportMainInfo();
-        //reporter.reportGovermentCustomerInfo();
-//        reporter.reportCustomerScale();
-//        reporter.reportOwnership();
-
-        CustomerReporter customerReporter = new CustomerReporter(customerRepository, groupCustomerRepository,
-                contractRepository, contractStateRepository);
+//        customerReporter.reportCustomers();
 //        customerReporter.reportGroupCustomers();
-        customerReporter.reportBranchs();
+//        customerReporter.reportBranchs();
+
+        CustomerDetailReporter customerDetailReporter
+                = new CustomerDetailReporter(customerRepository, groupCustomerRepository, validCustomerStateRepository);
+//        customerDetailReporter.reportCustomerDetails();
+
+        RemainingReporter remainingReporter
+                = new RemainingReporter(customerRepository, validCustomerStateRepository);
+        remainingReporter.reportRemainingDetails();
 
         QualityLevelReporter qualityLevelReporter = new QualityLevelReporter(customerRepository, groupCustomerRepository,
                 contractRepository, contractStateRepository);

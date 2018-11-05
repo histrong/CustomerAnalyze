@@ -1,5 +1,6 @@
 package cn.gov.eximbank.customer.util;
 
+@Deprecated
 public class CellContentException extends Exception {
 
     private int row;
