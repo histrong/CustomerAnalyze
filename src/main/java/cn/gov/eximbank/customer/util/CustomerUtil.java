@@ -32,8 +32,7 @@ public class CustomerUtil {
     }
 
     public static boolean isBankCustomer(String customerName) {
-        if (customerName.contains("银行") || customerName.contains("bank")
-                || customerName.contains("BANK") || customerName.contains("Bank")) {
+        if (customerName.contains("银行") || customerName.toLowerCase().contains("bank")) {
             return true;
         }
         else {
