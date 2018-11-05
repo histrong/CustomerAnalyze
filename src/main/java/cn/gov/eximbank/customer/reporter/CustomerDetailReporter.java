@@ -49,7 +49,6 @@ public class CustomerDetailReporter {
             reportCustomerDetail(branch, branchCustomerDetails.get(branch));
         }
         reportCustomerDetail("总计", totalCustomerDetail);
-
     }
 
     private void reportCustomerDetail(String branch, CustomerDetail customerDetail) {
@@ -100,19 +99,7 @@ public class CustomerDetailReporter {
         }
 
         // 判断企业规模
-        int scaleIndex = 0;
-        if (validCustomerState.getScale().equals("小型") || validCustomerState.getScale().equals("微型")) {
-            scaleIndex = 1;
-        }
-        else if (validCustomerState.getScale().equals("中型")) {
-            scaleIndex = 2;
-        }
-        else if (validCustomerState.getScale().equals("大型")) {
-            scaleIndex = 3;
-        }
-        else {
-            scaleIndex = 0;
-        }
+        int scaleIndex = ReporterUtil.getScaleIndex(validCustomerState.getScale());
         totalCustomerDetail.increaseScaleCustomer(scaleIndex);
         branchCustomerDetails.get(validCustomerState.getBranch()).increaseScaleCustomer(scaleIndex);
 
@@ -123,23 +110,9 @@ public class CustomerDetailReporter {
             branchCustomerDetails.get(validCustomerState.getBranch()).increaseInGroupCustomer();
         }
 
+        // 判断所有制
         String ownership = ReporterUtil.ownershipMapping(validCustomerState.getOwnership());
-        int ownershipIndex = 0;
-        if (ownership.equals("国有")) {
-            ownershipIndex = 1;
-        }
-        else if (ownership.equals("集体")) {
-            ownershipIndex = 2;
-        }
-        else if (ownership.equals("民营")) {
-            ownershipIndex = 3;
-        }
-        else if (ownership.equals("外资")) {
-            ownershipIndex = 4;
-        }
-        else {
-            ownershipIndex = 0;
-        }
+        int ownershipIndex = ReporterUtil.getOwnershipIndex(ownership);
         totalCustomerDetail.increaseOwnershipCustomer(ownershipIndex);
         branchCustomerDetails.get(validCustomerState.getBranch()).increaseOwnershipCustomer(ownershipIndex);
     }

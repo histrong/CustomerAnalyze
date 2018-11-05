@@ -4,6 +4,7 @@ import cn.gov.eximbank.customer.analyzer.*;
 import cn.gov.eximbank.customer.model.*;
 import cn.gov.eximbank.customer.reporter.CustomerDetailReporter;
 import cn.gov.eximbank.customer.reporter.CustomerReporter;
+import cn.gov.eximbank.customer.reporter.RemainingReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,9 +69,11 @@ public class AnalyzeRunner implements CommandLineRunner {
 
         CustomerDetailReporter customerDetailReporter
                 = new CustomerDetailReporter(customerRepository, groupCustomerRepository, validCustomerStateRepository);
-        customerDetailReporter.reportCustomerDetails();
+//        customerDetailReporter.reportCustomerDetails();
 
-
+        RemainingReporter remainingReporter
+                = new RemainingReporter(customerRepository, validCustomerStateRepository);
+        remainingReporter.reportRemainingDetails();
 
         QualityLevelReporter qualityLevelReporter = new QualityLevelReporter(customerRepository, groupCustomerRepository,
                 contractRepository, contractStateRepository);

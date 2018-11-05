@@ -26,4 +26,37 @@ public class ReporterUtil {
         }
     }
 
+    public static int getScaleIndex(String scale) {
+        if (scale.equals("小型") || scale.equals("微型")) {
+            return 1;
+        }
+        else if (scale.equals("中型")) {
+            return 2;
+        }
+        else if (scale.equals("大型")) {
+            return 3;
+        }
+        else {
+            return 0;
+        }
+    }
+
+    public static int getOwnershipIndex(String ownership) {
+        if (ownership.equals("国有")) {
+            return 1;
+        }
+        else if (ownership.equals("集体")) {
+            return 2;
+        }
+        else if (ownership.equals("民营")) {
+            return 3;
+        }
+        else if (ownership.equals("外资")) {
+            return 4;
+        }
+        else {
+            return 0;
+        }
+    }
+
 }
