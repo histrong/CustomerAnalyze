@@ -12,4 +12,6 @@ public interface CustomerRepository extends CrudRepository<Customer, String> {
     List<Customer> findAllByLastCreditDateAfter(Date date);
 
     List<Customer> findAllByFirstDealDateAfter(Date date);
+
+    List<Customer> findByGroupId(String groupId);
 }

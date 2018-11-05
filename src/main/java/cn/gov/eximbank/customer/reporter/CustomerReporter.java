@@ -2,13 +2,16 @@ package cn.gov.eximbank.customer.reporter;
 
 import cn.gov.eximbank.customer.analyzer.CustomerAnalyzeInfo;
 import cn.gov.eximbank.customer.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class CustomerReporter {
+
+    private static Logger logger = LoggerFactory.getLogger(CustomerReporter.class);
 
     private CustomerRepository customerRepository;
 
@@ -43,18 +46,54 @@ public class CustomerReporter {
         System.out.println("2017年3月至今包含评级未过期的有效客户数为 : " + totalCustomerIds.size());
     }
 
+    public void reportCustomerDetails(String period) {
+//        List<ValidCustomerState> validCustomerStates = validCustomerStateRepository.findByPeriod(period);
+//        int bankCustomer = 0;
+//        int governmentCustomer = 0;
+//        int foreignCustomer = 0;
+//        int[] scale
+    }
+
     public void reportGroupCustomers() {
+        // 201703至今所有有余额的客户
         Set<String> validCustomerIds = getValidCustomerIds(validCustomerStateRepository);
+
+        // 截止201809授信未过期客户
         Set<String> creditCustomerIds = getCreditCustomerIds(customerRepository);
+
+        // 上述两客户集合的并集
         Set<String> totalCustomerIds = new HashSet<String>();
         totalCustomerIds.addAll(validCustomerIds);
         totalCustomerIds.addAll(creditCustomerIds);
 
+
+        // 201809仍有余额的客户
+        String latestPeriod = ReporterUtil.getPeriods()[0];
+        Set<String> lastedValidCustomerIds = getValidCustomerIdsWithPeriod(validCustomerStateRepository, latestPeriod);
+
         System.out.println("2018年9月末仍有余额集团数量 : " +
-                getGroupIdsForCustomers(customerRepository,
-                        getLatestValidCustomerIds(validCustomerStateRepository)).size());
+                getGroupIdsForCustomers(customerRepository, lastedValidCustomerIds).size());
         System.out.println("2017年3月至今所有有效集团数量 : " +
                 getGroupIdsForCustomers(customerRepository, totalCustomerIds).size());
+
+
+        // 201809仍有余额的集团客户
+        Set<String> latestValidGroupIds = getGroupIdsForCustomers(customerRepository, lastedValidCustomerIds);
+
+        // 201703至今所有有效的集团客户
+        Set<String> totalValidGroupIds = getGroupIdsForCustomers(customerRepository, totalCustomerIds);
+        System.out.println("2018年9月末仍有余额跨经营单位集团数量 : " + getGroupInBranches(latestValidGroupIds).size());
+        System.out.println("201703至今有效的跨经营单位集团数量 : " + getGroupInBranches(totalValidGroupIds).size());
+    }
+
+    public Set<String> getGroupInBranches(Set<String> groupIds) {
+        Set<String> groupIdsInBranchesIds = new HashSet<String>();
+        for (String validGroupId : groupIds) {
+            if (isGroupInBranches(validGroupId)) {
+                groupIdsInBranchesIds.add(validGroupId);
+            }
+        }
+        return groupIdsInBranchesIds;
     }
 
 
@@ -227,8 +266,8 @@ public class CustomerReporter {
         return validCustomers;
     }
 
-    public static Set<String> getLatestValidCustomerIds(ValidCustomerStateRepository validCustomerStateRepository) {
-        String period = ReporterUtil.getPeriods()[0];
+    public static Set<String> getValidCustomerIdsWithPeriod(ValidCustomerStateRepository validCustomerStateRepository,
+                                                            String period) {
         Set<String> latestValidCustomerIds = new HashSet<String>();
         List<ValidCustomerState> validCustomerStates
                 = validCustomerStateRepository.findByPeriod(period);
@@ -275,5 +314,25 @@ public class CustomerReporter {
             }
         }
         return groupIds;
+    }
+
+    private boolean isGroupInBranches(String groupId) {
+        List<Customer> customers = customerRepository.findByGroupId(groupId);
+        if (customers == null || customers.size() == 0) {
+            logger.error("Group not contain customers : " + groupId);
+            return false;
+        }
+        else if (customers.size() == 1) {
+            return false;
+        }
+        else {
+            String firstCustomerBranch = customers.get(0).getBranch();
+            for (int i = 1; i != customers.size(); ++i) {
+                if (!customers.get(i).getBranch().equals(firstCustomerBranch)) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }
