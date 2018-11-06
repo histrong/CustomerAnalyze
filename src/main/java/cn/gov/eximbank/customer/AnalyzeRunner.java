@@ -2,6 +2,7 @@ package cn.gov.eximbank.customer;
 
 import cn.gov.eximbank.customer.analyzer.*;
 import cn.gov.eximbank.customer.model.*;
+import cn.gov.eximbank.customer.reporter.CreditReporter;
 import cn.gov.eximbank.customer.reporter.CustomerDetailReporter;
 import cn.gov.eximbank.customer.reporter.CustomerReporter;
 import cn.gov.eximbank.customer.reporter.RemainingReporter;
@@ -31,6 +32,9 @@ public class AnalyzeRunner implements CommandLineRunner {
     @Autowired
     private ValidCustomerStateRepository validCustomerStateRepository;
 
+    @Autowired
+    private CustomerCreditRepository customerCreditRepository;
+
     @Override
     public void run(String... args) throws Exception {
         if (args.length != 1) {
@@ -42,6 +46,8 @@ public class AnalyzeRunner implements CommandLineRunner {
                 readContracts();
             } else if (argument.equals("customers")) {
                 readCustomers();
+            } else if (argument.equals("credit")) {
+                readCredits();
             } else if (argument.equals("analyze")) {
                 report();
             }
@@ -59,6 +65,11 @@ public class AnalyzeRunner implements CommandLineRunner {
         customerAnalyzer.readCustomerFiles();
     }
 
+    private void readCredits() {
+        CreditAnalyzer creditAnalyzer = new CreditAnalyzer(customerCreditRepository);
+        creditAnalyzer.readCreditFiles();
+    }
+
     private void report() {
         CustomerReporter customerReporter = new CustomerReporter(customerRepository,
                 groupCustomerRepository, validCustomerStateRepository,
@@ -73,11 +84,15 @@ public class AnalyzeRunner implements CommandLineRunner {
 
         RemainingReporter remainingReporter
                 = new RemainingReporter(customerRepository, validCustomerStateRepository);
-        remainingReporter.reportRemainingDetails();
+//        remainingReporter.reportRemainingDetails();
 
         QualityLevelReporter qualityLevelReporter = new QualityLevelReporter(customerRepository, groupCustomerRepository,
                 contractRepository, contractStateRepository);
 //        qualityLevelReporter.reportQualityLevel();
+
+        CreditReporter creditReporter = new CreditReporter(validCustomerStateRepository, customerCreditRepository, contractStateRepository);
+        creditReporter.reportCustomerCredits();
+        creditReporter.reportCreditQuality();
     }
 
 }
