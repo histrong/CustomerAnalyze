@@ -1,6 +1,5 @@
 package cn.gov.eximbank.customer.reporter;
 
-import cn.gov.eximbank.customer.analyzer.CustomerAnalyzeInfo;
 import cn.gov.eximbank.customer.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
