@@ -81,6 +81,7 @@ public class AnalyzeRunner implements CommandLineRunner {
         CustomerDetailReporter customerDetailReporter
                 = new CustomerDetailReporter(customerRepository, groupCustomerRepository, validCustomerStateRepository);
 //        customerDetailReporter.reportCustomerDetails();
+        customerDetailReporter.reportValidCustomer("201809");
 
         RemainingReporter remainingReporter
                 = new RemainingReporter(customerRepository, validCustomerStateRepository);
@@ -91,8 +92,8 @@ public class AnalyzeRunner implements CommandLineRunner {
 //        qualityLevelReporter.reportQualityLevel();
 
         CreditReporter creditReporter = new CreditReporter(validCustomerStateRepository, customerCreditRepository, contractStateRepository);
-        creditReporter.reportCustomerCredits();
-        creditReporter.reportCreditQuality();
+//        creditReporter.reportCustomerCredits();
+//        creditReporter.reportCreditQuality();
     }
 
 }

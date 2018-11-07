@@ -5,6 +5,10 @@ import cn.gov.eximbank.customer.util.CustomerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +30,25 @@ public class CustomerDetailReporter {
         this.customerRepository = customerRepository;
         this.groupCustomerRepository = groupCustomerRepository;
         this.validCustomerStateRepository = validCustomerStateRepository;
+    }
+
+    public void reportValidCustomer(String period) {
+        List<ValidCustomerState> validCustomerStates = validCustomerStateRepository.findByPeriod(period);
+        File file = new File("data/result.txt");
+        try {
+            FileOutputStream outputStream = new FileOutputStream(file);
+            outputStream.write("客户编号".getBytes());
+            outputStream.write('\n');
+            for (ValidCustomerState validCustomerState : validCustomerStates) {
+                outputStream.write(validCustomerState.getCustomerId().getBytes());
+                outputStream.write('\n');
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     public void reportCustomerDetails() {
