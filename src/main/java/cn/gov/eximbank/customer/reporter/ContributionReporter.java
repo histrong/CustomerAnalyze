@@ -24,16 +24,20 @@ public class ContributionReporter {
 
     private CustomerCreditRepository customerCreditRepository;
 
+    private ValidCustomerStateRepository validCustomerStateRepository;
+
     public ContributionReporter(CustomerContributionRepository customerContributionRepository,
                                 LoanContributionRepository loanContributionRepository,
                                 IntermediateContributionRepository intermediateContributionRepository,
                                 DemandDepositContributionRepository demandDepositContributionRepository,
-                                CustomerCreditRepository customerCreditRepository) {
+                                CustomerCreditRepository customerCreditRepository,
+                                ValidCustomerStateRepository validCustomerStateRepository) {
         this.customerContributionRepository = customerContributionRepository;
         this.loanContributionRepository = loanContributionRepository;
         this.intermediateContributionRepository = intermediateContributionRepository;
         this.demandDepositContributionRepository = demandDepositContributionRepository;
         this.customerCreditRepository = customerCreditRepository;
+        this.validCustomerStateRepository = validCustomerStateRepository;
     }
 
     public void reportContributionInBranch() {
@@ -176,6 +180,11 @@ public class ContributionReporter {
         Map<String, Integer> scaleCounts = new HashMap<>();
         Map<String, Double> ownershipContributions = new HashMap<>();
         Map<String, Integer> ownershipCounts = new HashMap<>();
+
+        double[] ownershipContributionArray = new double[ownerships.length];
+        int[] ownershipCountArray = new int[ownerships.length];
+        String period = "201809";
+
         for (CustomerContribution customerContribution : customerContributionRepository.findAll()) {
 //            if (ReporterUtil.isEnterpriseCustomerInside(customerContribution.getCustomerName(),
 //                    customerContribution.getBranch(), customerContribution.getProvince())) {
@@ -200,6 +209,17 @@ public class ContributionReporter {
                 ownershipContributions.put(ownership, contribution);
                 ownershipCounts.put(ownership, 1);
             }
+
+            ownership = "未知";
+            ValidCustomerState validCustomerState = validCustomerStateRepository.findByPeriodAndCustomerId(period, customerContribution.getCustomerId());
+            if (validCustomerState != null) {
+                if (validCustomerState.getOwnership() != null || validCustomerState.getOwnership() != "") {
+                    ownership = validCustomerState.getOwnership();
+                }
+            }
+            int ownershipIndex = ReporterUtil.getOwnershipIndex(ReporterUtil.ownershipMapping(ownership));
+            ownershipContributionArray[ownershipIndex] += contribution;
+            ++ownershipCountArray[ownershipIndex];
 //            }
         }
 
@@ -213,10 +233,14 @@ public class ContributionReporter {
         System.out.println();
 
         System.out.println("所有制;贡献度;数量;平均");
-        for (String ownership : ownershipContributions.keySet()) {
-            System.out.println(ownership + ";" + ownershipContributions.get(ownership) + ";"
-                    + ownershipCounts.get(ownership) + ";"
-                    + ownershipContributions.get(ownership) / ownershipCounts.get(ownership));
+//        for (String ownership : ownershipContributions.keySet()) {
+//            System.out.println(ownership + ";" + ownershipContributions.get(ownership) + ";"
+//                    + ownershipCounts.get(ownership) + ";"
+//                    + ownershipContributions.get(ownership) / ownershipCounts.get(ownership));
+//        }
+        for (int i = 0; i != ownerships.length; ++i) {
+            System.out.println(ownerships[i] + ";" + ownershipContributionArray[i] + ";"
+                    + ownershipCountArray[i] + ";" + ownershipContributionArray[i] / ownershipCountArray[i]);
         }
     }
 

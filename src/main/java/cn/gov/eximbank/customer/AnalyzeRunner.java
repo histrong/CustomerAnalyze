@@ -121,13 +121,13 @@ public class AnalyzeRunner implements CommandLineRunner {
 
         ContributionReporter contributionReporter = new ContributionReporter(customerContributionRepository,
                 loanContributionRepository, intermediateContributionRepository,
-                demandDepositContributionRepository, customerCreditRepository);
+                demandDepositContributionRepository, customerCreditRepository, validCustomerStateRepository);
 //        contributionReporter.reportLoanContributionInBranch();
 //        contributionReporter.reportIntermediateContributionInBranch();
 //        contributionReporter.reportDepositContributionInBranch();;
 //        contributionReporter.reportContributionInBranch();
-//        contributionReporter.reportContributionDetails();
-        contributionReporter.reportContributionWithCredit();
+        contributionReporter.reportContributionDetails();
+//        contributionReporter.reportContributionWithCredit();
     }
 
 }
