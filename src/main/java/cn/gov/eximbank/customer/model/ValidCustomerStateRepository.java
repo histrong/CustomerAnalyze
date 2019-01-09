@@ -9,4 +9,6 @@ public interface ValidCustomerStateRepository extends CrudRepository<ValidCustom
     ValidCustomerState findByPeriodAndCustomerId(String period, String customerId);
 
     List<ValidCustomerState> findByPeriod(String period);
+
+    List<ValidCustomerState> findByPeriodAndBranch(String period, String branch);
 }

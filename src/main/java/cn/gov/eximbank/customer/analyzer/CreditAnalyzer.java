@@ -4,10 +4,7 @@ import cn.gov.eximbank.customer.model.CustomerCredit;
 import cn.gov.eximbank.customer.model.CustomerCreditRepository;
 import cn.gov.eximbank.customer.util.CellContentUtil;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,17 +56,18 @@ public class CreditAnalyzer {
         String originCredit = CellContentUtil.getStringContent(row.getCell(3));
         String credit = adaptOriginCredit(originCredit);
         Date startDate = CellContentUtil.getDateContent(row.getCell(4));
+        Date endDate = CellContentUtil.getDateContent(row.getCell(5));
         Optional<CustomerCredit> customerCreditInDB = customerCreditRepository.findById(customerId);
         if (customerCreditInDB.isPresent()) {
             if (customerCreditInDB.get().getStartDate() == null) {
-                customerCreditRepository.save(new CustomerCredit(customerId, credit, startDate));
+                customerCreditRepository.save(new CustomerCredit(customerId, credit, startDate, endDate));
             }
             else if (startDate != null && customerCreditInDB.get().getStartDate().before(startDate)) {
-                customerCreditRepository.save(new CustomerCredit(customerId, credit, startDate));
+                customerCreditRepository.save(new CustomerCredit(customerId, credit, startDate, endDate));
             }
         }
         else {
-            customerCreditRepository.save(new CustomerCredit(customerId, credit, startDate));
+            customerCreditRepository.save(new CustomerCredit(customerId, credit, startDate, endDate));
         }
     }
 

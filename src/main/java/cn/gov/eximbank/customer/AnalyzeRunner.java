@@ -2,10 +2,7 @@ package cn.gov.eximbank.customer;
 
 import cn.gov.eximbank.customer.analyzer.*;
 import cn.gov.eximbank.customer.model.*;
-import cn.gov.eximbank.customer.reporter.CreditReporter;
-import cn.gov.eximbank.customer.reporter.CustomerDetailReporter;
-import cn.gov.eximbank.customer.reporter.CustomerReporter;
-import cn.gov.eximbank.customer.reporter.RemainingReporter;
+import cn.gov.eximbank.customer.reporter.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +32,21 @@ public class AnalyzeRunner implements CommandLineRunner {
     @Autowired
     private CustomerCreditRepository customerCreditRepository;
 
+    @Autowired
+    private IntermediateContributionRepository intermediateContributionRepository;
+
+    @Autowired
+    private DemandDepositContributionRepository demandDepositContributionRepository;
+
+    @Autowired
+    private TimeDepositContributionRepository timeDepositContributionRepository;
+
+    @Autowired
+    private LoanContributionRepository loanContributionRepository;
+
+    @Autowired
+    private CustomerContributionRepository customerContributionRepository;
+
     @Override
     public void run(String... args) throws Exception {
         if (args.length != 1) {
@@ -48,6 +60,8 @@ public class AnalyzeRunner implements CommandLineRunner {
                 readCustomers();
             } else if (argument.equals("credit")) {
                 readCredits();
+            } else if (argument.equals("contribution")) {
+                readContributions();
             } else if (argument.equals("analyze")) {
                 report();
             }
@@ -70,6 +84,14 @@ public class AnalyzeRunner implements CommandLineRunner {
         creditAnalyzer.readCreditFiles();
     }
 
+    private void readContributions() {
+        ContributionAnalyzer contributionAnalyzer =
+                new ContributionAnalyzer(intermediateContributionRepository, demandDepositContributionRepository,
+                        timeDepositContributionRepository, loanContributionRepository,
+                        customerContributionRepository, validCustomerStateRepository);
+        contributionAnalyzer.readContributionFiles();
+    }
+
     private void report() {
         CustomerReporter customerReporter = new CustomerReporter(customerRepository,
                 groupCustomerRepository, validCustomerStateRepository,
@@ -81,7 +103,7 @@ public class AnalyzeRunner implements CommandLineRunner {
         CustomerDetailReporter customerDetailReporter
                 = new CustomerDetailReporter(customerRepository, groupCustomerRepository, validCustomerStateRepository);
 //        customerDetailReporter.reportCustomerDetails();
-        customerDetailReporter.reportValidCustomer("201809");
+//        customerDetailReporter.reportCustomerDetailsWithPeriodInBranch("201809", "厦门分行");
 
         RemainingReporter remainingReporter
                 = new RemainingReporter(customerRepository, validCustomerStateRepository);
@@ -94,6 +116,18 @@ public class AnalyzeRunner implements CommandLineRunner {
         CreditReporter creditReporter = new CreditReporter(validCustomerStateRepository, customerCreditRepository, contractStateRepository);
 //        creditReporter.reportCustomerCredits();
 //        creditReporter.reportCreditQuality();
+//        creditReporter.reportCustomerCreditsInScalesAndOwnerShipWithPeriod("201809");
+//        creditReporter.reportCreditDetailsWithBranch("201809");
+
+        ContributionReporter contributionReporter = new ContributionReporter(customerContributionRepository,
+                loanContributionRepository, intermediateContributionRepository,
+                demandDepositContributionRepository, customerCreditRepository);
+//        contributionReporter.reportLoanContributionInBranch();
+//        contributionReporter.reportIntermediateContributionInBranch();
+//        contributionReporter.reportDepositContributionInBranch();;
+//        contributionReporter.reportContributionInBranch();
+//        contributionReporter.reportContributionDetails();
+        contributionReporter.reportContributionWithCredit();
     }
 
 }

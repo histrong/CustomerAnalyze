@@ -83,6 +83,35 @@ public class CustomerReporter {
         Set<String> totalValidGroupIds = getGroupIdsForCustomers(customerRepository, totalCustomerIds);
         System.out.println("2018年9月末仍有余额跨经营单位集团数量 : " + getGroupInBranches(latestValidGroupIds).size());
         System.out.println("201703至今有效的跨经营单位集团数量 : " + getGroupInBranches(totalValidGroupIds).size());
+
+        reportGroupDistributions(latestValidGroupIds);
+    }
+
+    private void reportGroupDistributions(Set<String> latestValidGroupIds) {
+        int[] groupDistributions = new int[40];
+        for (String groupId : latestValidGroupIds) {
+            int branchCount = getBranchCount(groupId);
+            ++groupDistributions[branchCount];
+        }
+        for (int i = 0; i != groupDistributions.length; ++i) {
+            System.out.println(i + ";" + groupDistributions[i]);
+        }
+    }
+
+    private int getBranchCount(String groupId) {
+        Set<String> branches = new HashSet<String>();
+        List<Customer> customers = customerRepository.findByGroupId(groupId);
+        for (Customer customer : customers) {
+            branches.add(customer.getBranch());
+        }
+        if (branches.size() >= 15) {
+            Optional<GroupCustomer> groupCustomerInDB = groupCustomerRepository.findById(groupId);
+            if (groupCustomerInDB.isPresent()) {
+                String groupName = groupCustomerInDB.get().getName();
+                System.out.println(groupName + ";" + branches.size());
+            }
+        }
+        return branches.size();
     }
 
     public Set<String> getGroupInBranches(Set<String> groupIds) {

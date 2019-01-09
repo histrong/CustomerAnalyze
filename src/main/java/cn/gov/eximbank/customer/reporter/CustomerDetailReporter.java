@@ -9,10 +9,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class CustomerDetailReporter {
 
@@ -72,6 +69,38 @@ public class CustomerDetailReporter {
             reportCustomerDetail(branch, branchCustomerDetails.get(branch));
         }
         reportCustomerDetail("总计", totalCustomerDetail);
+    }
+
+    public void reportCustomerDetailsWithPeriodInBranch(String period, String branch) {
+        List<String> largeCustomers = new ArrayList<String>();
+        List<String> middleCustomers = new ArrayList<String>();
+        List<String> smallCustomers = new ArrayList<String>();
+        List<ValidCustomerState> validCustomerStates = validCustomerStateRepository.findByPeriodAndBranch(period, branch);
+        for (ValidCustomerState validCustomerState : validCustomerStates) {
+            if (validCustomerState.getScale().equals("大型")) {
+                largeCustomers.add(validCustomerState.getCustomerName());
+            }
+            else if (validCustomerState.getScale().equals("中型")) {
+                middleCustomers.add(validCustomerState.getCustomerName());
+            }
+            else if (validCustomerState.getScale().equals("小型") || validCustomerState.getScale().equals("微型")) {
+                smallCustomers.add(validCustomerState.getCustomerName());
+            }
+        }
+        System.out.println("大型");
+        for (String name : largeCustomers) {
+            System.out.println(name);
+        }
+        System.out.println();
+        System.out.println("中型");
+        for (String name : middleCustomers) {
+            System.out.println(name);
+        }
+        System.out.println();
+        System.out.println("小微");
+        for (String name : smallCustomers) {
+            System.out.println(name);
+        }
     }
 
     private void reportCustomerDetail(String branch, CustomerDetail customerDetail) {

@@ -14,14 +14,17 @@ public class CustomerCredit {
 
     private Date startDate;
 
+    private Date endDate;
+
     protected CustomerCredit() {
 
     }
 
-    public CustomerCredit(String customerId, String credit, Date startDate) {
+    public CustomerCredit(String customerId, String credit, Date startDate, Date endDate) {
         this.customerId = customerId;
         this.credit = credit;
         this.startDate = startDate;
+        this.endDate = endDate;
     }
 
     public String getCustomerId() {
@@ -34,5 +37,9 @@ public class CustomerCredit {
 
     public Date getStartDate() {
         return startDate;
+    }
+
+    public Date getEndDate() {
+        return endDate;
     }
 }
